@@ -6,6 +6,7 @@ export default async () => {
     name: 'Test',
     host: 'localhost',
     port: '2860',
-    status: 'disconnected'
+    status: 'disconnected',
+    open: true
   })
 }

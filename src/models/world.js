@@ -10,6 +10,10 @@ const WorldSchema = new Schema({
     type: String,
     enum: ['connected', 'disconnected', 'connecting', 'disconnecting'],
     default: 'disconnected'
+  },
+  open: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -28,9 +32,14 @@ WorldSchema.pre('save', function () {
     } else if (this.status === 'disconnecting') {
       connection = connections[this._id]
       connection.disconnect()
+    } else {
+      pubsub.publish(WORLD_STATUS, { worldStatus: this })
     }
+  }
 
-    pubsub.publish(WORLD_STATUS, { worldStatus: this })
+  if (this.isModified('open') && this.open === false) {
+    connection = connections[this._id]
+    connection.disconnect()
   }
 })
 

@@ -3,6 +3,7 @@ import { schemaComposer } from 'graphql-compose'
 import World from './models/world'
 import HistoryLine from './models/historyLine'
 import { pubsub, HISTORY_ADDED, WORLD_STATUS } from './pubsub'
+import { withFilter } from 'apollo-server-express'
 
 const customizationOptions = {}
 const WorldTC = composeWithMongoose(World, customizationOptions)
@@ -37,11 +38,23 @@ schemaComposer.Mutation.addFields({
 schemaComposer.Subscription.addFields({
   updateOutput: {
     type: 'HistoryLine',
-    subscribe: () => pubsub.asyncIterator([HISTORY_ADDED])
+    args: {
+      worldId: 'MongoID!'
+    },
+    subscribe: withFilter(() => { return pubsub.asyncIterator(HISTORY_ADDED) }, (payload, variables) => {
+      // TODO: why is this variable not arriving as an ID when set as MongoID!
+      return payload.updateOutput.world._id.toString() === variables.worldId
+    })
   },
   worldStatus: {
     type: 'World',
-    subscribe: () => pubsub.asyncIterator([WORLD_STATUS])
+    args: {
+      worldId: 'MongoID!'
+    },
+    subscribe: withFilter(() => { return pubsub.asyncIterator(WORLD_STATUS) }, (payload, variables) => {
+      // TODO: see above
+      return payload.worldStatus._id.toString() === variables.worldId
+    })
   }
 })
 
