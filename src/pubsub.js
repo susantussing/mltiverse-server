@@ -1,8 +1,8 @@
 import { PubSub } from 'apollo-server'
 
 const HISTORY_ADDED = 'HISTORY_ADDED'
-const WORLD_STATUS = 'WORLD_STATUS'
+const WORLD_UPDATE = 'WORLD_UPDATE'
 
 const pubsub = new PubSub()
 
-export { pubsub, HISTORY_ADDED, WORLD_STATUS }
+export { pubsub, HISTORY_ADDED, WORLD_UPDATE }

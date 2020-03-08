@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose'
 import TelnetConnection, { connections } from '../telnetConnection'
-import { pubsub, WORLD_STATUS } from '../pubsub'
+import { pubsub, WORLD_UPDATE } from '../pubsub'
 
 const WorldSchema = new Schema({
   name: String,
@@ -14,6 +14,14 @@ const WorldSchema = new Schema({
   open: {
     type: Boolean,
     default: false
+  },
+  current: {
+    type: Boolean,
+    default: false
+  },
+  unread: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -23,7 +31,7 @@ WorldSchema.methods.createConnection = function () {
   return connection
 }
 
-WorldSchema.pre('save', function () {
+WorldSchema.pre('save', async function () {
   let connection
   if (this.isModified('status')) {
     if (this.status === 'connecting') {
@@ -33,13 +41,26 @@ WorldSchema.pre('save', function () {
       connection = connections[this._id]
       connection.disconnect()
     } else {
-      pubsub.publish(WORLD_STATUS, { worldStatus: this })
+      pubsub.publish(WORLD_UPDATE, { worldUpdate: this })
     }
   }
 
   if (this.isModified('open') && this.open === false) {
+    this.unread = 0
     connection = connections[this._id]
     connection.disconnect()
+    pubsub.publish(WORLD_UPDATE, { worldUpdate: this })
+  }
+
+  if (this.isModified('current') && this.current) {
+    // mark others not current, eventually will filter for user's own worlds only
+    await this.constructor.updateMany({ current: true }, { current: false })
+    this.unread = 0
+    pubsub.publish(WORLD_UPDATE, { worldUpdate: this })
+  }
+
+  if (this.isModified('unread')) {
+    pubsub.publish(WORLD_UPDATE, { worldUpdate: this })
   }
 })
 

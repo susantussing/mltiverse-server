@@ -20,14 +20,24 @@ const HistoryLineSchema = new Schema(
 HistoryLineSchema.index({ createdAt: 1 })
 
 HistoryLineSchema.pre('save', async function () {
-  if (this.type === 'input') {
+  if (this.type === 'input' && this.isNew) {
     connections[this.world].sendCommand(this.line)
   }
+
+  this.wasNew = this.isNew
 })
 
 HistoryLineSchema.post('save', async function () {
-  console.log(this.line)
-  pubsub.publish(HISTORY_ADDED, { updateOutput: this })
+  await this.populate('world').execPopulate()
+
+  if (this.wasNew) {
+    if (this.world.current) {
+      pubsub.publish(HISTORY_ADDED, { updateOutput: this })
+    } else {
+      this.world.unread += 1
+      await this.world.save()
+    }
+  }
 })
 
 const HistoryLine = mongoose.model('HistoryLine', HistoryLineSchema)

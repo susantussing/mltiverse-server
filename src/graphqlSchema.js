@@ -2,7 +2,7 @@ import { composeWithMongoose } from 'graphql-compose-mongoose'
 import { schemaComposer } from 'graphql-compose'
 import World from './models/world'
 import HistoryLine from './models/historyLine'
-import { pubsub, HISTORY_ADDED, WORLD_STATUS } from './pubsub'
+import { pubsub, HISTORY_ADDED, WORLD_UPDATE } from './pubsub'
 import { withFilter } from 'apollo-server-express'
 
 const customizationOptions = {}
@@ -33,8 +33,10 @@ schemaComposer.Query.addFields({
 })
 
 schemaComposer.Mutation.addFields({
-  historyLineCreateOne: HistoryLineTC.getResolver('createOne')
+  historyLineCreateOne: HistoryLineTC.getResolver('createOne'),
+  historyLineUpdateById: HistoryLineTC.getResolver('updateById')
 })
+
 schemaComposer.Subscription.addFields({
   updateOutput: {
     type: 'HistoryLine',
@@ -46,15 +48,12 @@ schemaComposer.Subscription.addFields({
       return payload.updateOutput.world._id.toString() === variables.worldId
     })
   },
-  worldStatus: {
+  worldUpdate: {
     type: 'World',
     args: {
       worldId: 'MongoID!'
     },
-    subscribe: withFilter(() => { return pubsub.asyncIterator(WORLD_STATUS) }, (payload, variables) => {
-      // TODO: see above
-      return payload.worldStatus._id.toString() === variables.worldId
-    })
+    subscribe: () => { return pubsub.asyncIterator(WORLD_UPDATE) }
   }
 })
 
