@@ -4,36 +4,30 @@ import { Socket } from 'net'
 import HistoryLine from './models/historyLine'
 
 export default class TelnetConnection {
-  constructor (world) {
+  constructor(world) {
     this.world = world
     this.socket = new TelnetSocket(new Socket())
     this.host = world.host
     this.port = world.port
 
     this.socket.on('data', async data => {
-      // Will create a new HistoryLine for this
-      const split = data
-        .toString()
-        .replace(/\r\n$/, '')
-        .split('\r\n')
+      // Create a new HistoryLine, this is sent to the client by a pre-save hook
 
-      for await (const line of split) {
-        const escapedString = ansi.escapeForHtml(line)
-        const htmlString = ansi.ansiToHtml(escapedString, {
-          use_classes: true
-        })
-        // console.log(htmlString);
-        const historyLine = new HistoryLine({
-          world: world._id,
-          type: 'output',
-          line: htmlString
-        })
-        await historyLine.save()
-      }
+      const escapedString = ansi.escapeForHtml(data.toString().replace(/\r\n$/, ''))
+      const htmlString = ansi.ansiToHtml(escapedString, {
+        use_classes: true
+      })
+
+      const historyLine = new HistoryLine({
+        world: world._id,
+        type: 'output',
+        line: htmlString
+      })
+
+      await historyLine.save()
     })
 
     this.socket.on('close', function () {
-      console.log('Disconnected')
       const line = new HistoryLine({
         world,
         type: 'system',
@@ -45,7 +39,6 @@ export default class TelnetConnection {
     })
 
     this.socket.on('connect', function () {
-      console.log('Connected')
       const line = new HistoryLine({
         world,
         type: 'system',
@@ -56,12 +49,12 @@ export default class TelnetConnection {
       world.save()
     })
 
-    this.socket.on('error', function () {
-      console.log('socket error')
+    this.socket.on('error', function (error) {
+      console.error(`Socket error on world '${world._id}':`, error)
     })
   }
 
-  connect () {
+  connect() {
     const params = {
       host: this.host,
       port: this.port
@@ -69,24 +62,24 @@ export default class TelnetConnection {
     try {
       this.socket.connect(params)
     } catch (error) {
-      console.error('Connection failed:', error)
+      console.error(`Connection failed on world '${this.world._id}':`, error)
     }
   }
 
-  disconnect () {
+  disconnect() {
     try {
       this.socket.end()
       // this.socket.destroy();
     } catch (error) {
-      console.error('Ending connection failed:', error)
+      console.error(`Disconnection failed on world '${this.world._id}':`, error)
     }
   }
 
-  async sendCommand (command) {
+  async sendCommand(command) {
     try {
       this.socket.write(`${command}\n`)
     } catch (error) {
-      console.error('Write failed: ', error)
+      console.error(`Write failed on world '${this.world._id}':`, error)
     }
   }
 }

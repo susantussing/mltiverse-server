@@ -45,21 +45,31 @@ WorldSchema.pre('save', async function () {
     }
   }
 
-  if (this.isModified('open') && this.open === false) {
+  if (this.isModified('open')) {
     this.unread = 0
-    connection = connections[this._id]
-    connection.disconnect()
+
+    if (this.open) {
+      connection = this.createConnection()
+      connection.connect()
+    } else {
+      connection = connections[this._id]
+      connection && connection.disconnect()
+    }
+
     pubsub.publish(WORLD_UPDATE, { worldUpdate: this })
   }
 
-  if (this.isModified('current') && this.current) {
-    // mark others not current, eventually will filter for user's own worlds only
-    await this.constructor.updateMany({ current: true }, { current: false })
-    this.unread = 0
-    pubsub.publish(WORLD_UPDATE, { worldUpdate: this })
+  if (this.isModified('current')) {
+    if (this.current) {
+      // mark others not current, eventually unnecessary once there's users
+      await this.constructor.updateMany({ current: true }, { current: false })
+      this.unread = 0
+    }
+
+    // pubsub.publish(WORLD_UPDATE, { worldUpdate: this })
   }
 
-  if (this.isModified('unread')) {
+  if (this.isModified('unread') && !this.isModified('open')) {
     pubsub.publish(WORLD_UPDATE, { worldUpdate: this })
   }
 })
