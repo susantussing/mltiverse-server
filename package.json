@@ -8,7 +8,8 @@
     "clean": "rm -rf dist",
     "build": "yarn clean && yarn transpile",
     "dev": "NODE_ENV=development yarn build && yarn server",
-    "watch:dev": "nodemon"
+    "watch:dev": "nodemon",
+    "test": "jest"
   },
   "dependencies": {
     "anser": "^1.4.9",
@@ -32,7 +33,9 @@
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
     "@babel/plugin-proposal-optional-chaining": "^7.8.3",
     "@babel/preset-env": "^7.8.4",
+    "apollo-server-testing": "^2.11.0",
     "babel-eslint": "^10.1.0",
+    "jest": "^25.1.0",
     "nodemon": "^2.0.2",
     "standard": "^14.3.1"
   },
@@ -63,5 +66,26 @@
   },
   "standard": {
     "parser": "babel-eslint"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "__utils__"
+    ],
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/src/**/*.{js,jsx}",
+      "!**/__mocks__/**",
+      "!**/__tests__/**",
+      "!**/graphqlSchema.js"
+    ],
+    "coverageDirectory": "coverage",
+    "testEnvironment": "node",
+    "modulePaths": [
+      "<rootDir>"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ]
   }
 }
