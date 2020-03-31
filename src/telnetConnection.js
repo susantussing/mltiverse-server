@@ -3,8 +3,13 @@ import { TelnetSocket } from 'telnet-stream'
 import { Socket } from 'net'
 import HistoryLine from './models/historyLine'
 
+// Maintains a connection for a given world and handles data to and from that socket.
+// TODO:
+// Negotiate window size for games that support it.
+// Research whether 8k buffer size is actually enough for long-form text.
+
 export default class TelnetConnection {
-  constructor (world) {
+  constructor(world) {
     this.world = world
     this.socket = new TelnetSocket(new Socket())
     this.host = world.host
@@ -54,7 +59,7 @@ export default class TelnetConnection {
     })
   }
 
-  connect () {
+  connect() {
     const params = {
       host: this.host,
       port: this.port
@@ -66,7 +71,7 @@ export default class TelnetConnection {
     }
   }
 
-  disconnect () {
+  disconnect() {
     try {
       this.socket.end()
       // this.socket.destroy();
@@ -75,7 +80,7 @@ export default class TelnetConnection {
     }
   }
 
-  async sendCommand (command) {
+  async sendCommand(command) {
     try {
       this.socket.write(`${command}\n`)
     } catch (error) {
@@ -84,4 +89,5 @@ export default class TelnetConnection {
   }
 }
 
+// Dictionary of existing connections stored by world ID.
 export const connections = {}

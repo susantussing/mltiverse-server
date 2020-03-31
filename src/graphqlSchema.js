@@ -37,6 +37,7 @@ schemaComposer.Mutation.addFields({
   historyLineUpdateById: HistoryLineTC.getResolver('updateById')
 })
 
+// Subscriptions can't be composed automatically the way that the other resolvers and mutations can.
 schemaComposer.Subscription.addFields({
   updateOutput: {
     type: 'HistoryLine',

@@ -6,6 +6,7 @@ import { pubsub } from '../../pubsub'
 jest.mock('../../telnetConnection')
 jest.mock('../../pubsub')
 
+// TODO:  Very slow, look at in-memory database options.
 describe('World', () => {
   let world
   beforeAll(async () => {
