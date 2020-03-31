@@ -1,1 +1,1 @@
-export default worldParams => worldParams;
+export default worldParams => worldParams

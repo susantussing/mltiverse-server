@@ -4,7 +4,7 @@ import { Socket } from 'net'
 import HistoryLine from './models/historyLine'
 
 export default class TelnetConnection {
-  constructor(world) {
+  constructor (world) {
     this.world = world
     this.socket = new TelnetSocket(new Socket())
     this.host = world.host
@@ -54,7 +54,7 @@ export default class TelnetConnection {
     })
   }
 
-  connect() {
+  connect () {
     const params = {
       host: this.host,
       port: this.port
@@ -66,7 +66,7 @@ export default class TelnetConnection {
     }
   }
 
-  disconnect() {
+  disconnect () {
     try {
       this.socket.end()
       // this.socket.destroy();
@@ -75,7 +75,7 @@ export default class TelnetConnection {
     }
   }
 
-  async sendCommand(command) {
+  async sendCommand (command) {
     try {
       this.socket.write(`${command}\n`)
     } catch (error) {
